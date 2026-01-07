@@ -1,3 +1,4 @@
+```
 """
 Streamlit Cohort Scheduler with Customizable Prerequisites
 Run with: streamlit run app.py
@@ -120,6 +121,31 @@ class CohortScheduler:
             'schedule': self.schedule
         }
 
+# ========== HELPER FUNCTIONS ==========
+
+def has_cycle(prereqs: Dict[str, List[str]], modules: List[str]) -> bool:
+    graph = {m: prereqs.get(m, []) for m in modules}
+    visited = set()
+    rec_stack = set()
+
+    def dfs(node: str) -> bool:
+        visited.add(node)
+        rec_stack.add(node)
+        for neigh in graph[node]:
+            if neigh not in visited:
+                if dfs(neigh):
+                    return True
+            elif neigh in rec_stack:
+                return True
+        rec_stack.remove(node)
+        return False
+
+    for node in modules:
+        if node not in visited:
+            if dfs(node):
+                return True
+    return False
+
 # ========== STREAMLIT APP ==========
 
 st.set_page_config(page_title="Cohort Scheduler", page_icon="📚", layout="wide")
@@ -164,6 +190,20 @@ preset = st.sidebar.selectbox(
 )
 
 if st.sidebar.button("Load Preset"):
+    # Clear existing widget states to prevent conflicts
+    for module in modules:
+        # Clear multiselect keys
+        multi_key = f"multi_{module}"
+        if multi_key in st.session_state:
+            del st.session_state[multi_key]
+        
+        # Clear checkbox keys
+        for potential in modules:
+            if potential != module:
+                key = f"prereq_{module}_{potential}"
+                if key in st.session_state:
+                    del st.session_state[key]
+
     if preset == "No Prerequisites":
         st.session_state.prereqs = {
             'M1': [], 'M2': [], 'M3': [], 'M4': [], 'M5': [], 'M6': [],
@@ -311,6 +351,12 @@ with tab2:
             sys.stdout = io.StringIO()
             
             try:
+                # Check for cycles
+                if has_cycle(st.session_state.prereqs, modules):
+                    st.error("❌ Cycle detected in prerequisite graph! Please fix the circular dependencies.")
+                    sys.stdout = old_stdout
+                    return
+                
                 # Set up cohort configuration
                 cohort_starts = {
                     'C1': 1, 'C2': 2, 'C3': 4, 'C4': 6,
@@ -486,3 +532,4 @@ with tab3:
 # Footer
 st.divider()
 st.markdown("**💡 Tip:** Try different prerequisite configurations to see how they affect scheduling efficiency!")
+```
