@@ -687,7 +687,7 @@ with tab3:
             
             # Convert to pandas DataFrame for better display
             import pandas as pd
-            df = pd.DataFrame(matrix_data[2:], columns=matrix_data[0])
+            df = pd.DataFrame(matrix_data[1:], columns=matrix_data[0])
             
             # Style the dataframe
             styled_df = df.style.set_properties(**{
