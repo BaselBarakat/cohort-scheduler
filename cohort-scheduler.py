@@ -660,7 +660,7 @@ with tab3:
             matrix_data = []
             
             # Header row
-            header_row = ["Term"]
+            header_row = ["Term","Date"]
             for cohort in sorted(scheduler.cohorts):
                 header_row.append(f"Cohort {cohort}")
             matrix_data.append(header_row)
