@@ -202,6 +202,9 @@ if st.sidebar.button("Load Preset"):
             'M12': ['M11']
         }
         st.sidebar.success("✅ Sequential preset loaded!")
+    
+    # Force a rerun to refresh the UI with new prerequisites
+    st.rerun()
 
 # Main content tabs
 tab1, tab2, tab3 = st.tabs(["📝 Edit Prerequisites", "▶️ Run Scheduler", "📊 Results"])
