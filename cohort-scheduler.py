@@ -489,13 +489,15 @@ with tab2:
     
     cohort_starts = {}
     cohort_cols = st.columns(4)
+    default_starts = [1, 2, 4, 6, 8, 10, 12, 14]
     for i, cohort in enumerate([f'C{i+1}' for i in range(8)]):
         with cohort_cols[i % 4]:
             cohort_starts[cohort] = st.number_input(
                 f"Start term for {cohort}",
                 min_value=1,
                 max_value=50,
-                value=i*2 + 1,
+                value=i*2 + 1, #
+                value=default_starts[i],
                 key=f"cohort_{cohort}"
             )
     
