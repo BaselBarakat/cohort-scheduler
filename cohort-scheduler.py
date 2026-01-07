@@ -595,10 +595,10 @@ with tab3:
         with col1:
             st.download_button(
                 "📄 Term Schedule",
-                generate_term_csv_spreadsheet(),
-                "term_schedule_spreadsheet.csv",
+                generate_term_csv(),
+                "term_by_term_schedule.csv",
                 "text/csv",
-                help="Download in spreadsheet format with terms as rows and modules as columns"
+                help="Schedule showing which modules run each term and which cohorts attend"
             )
         
         with col2:
