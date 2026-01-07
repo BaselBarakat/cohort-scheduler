@@ -659,7 +659,7 @@ with tab3:
             st.download_button(
                 "📥 Download Detailed Schedule",
                 schedule_text,
-                "detailed_schedule.txt",
+                "detailed_schedule.csv",
                 "text/plain"
             )
         
@@ -705,7 +705,7 @@ with tab3:
             st.download_button(
                 "📥 Download Cohort Progression",
                 cohort_text,
-                "cohort_progression.txt",
+                "cohort_progression.csv",
                 "text/plain"
             )
         
