@@ -668,6 +668,7 @@ with tab3:
             # Data rows for each term
             for term in range(1, max_term + 1):
                 row = [f"T{term}"]
+                row.append(get_term_date(term))
                 # For each cohort, find modules scheduled in this term
                 for cohort in sorted(scheduler.cohorts):
                     modules_in_term = []
