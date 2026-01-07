@@ -281,7 +281,7 @@ preset = st.sidebar.selectbox(
 
 # Reset to initial state button
 if st.sidebar.button("↩️ Reset to Initial"):
-    st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
+    st.session_state.prereqs = PRESETS["No Prerequisites (just project)"].copy()
     # Ensure all modules exist after reset
     for module in modules:
         if module not in st.session_state.prereqs:
