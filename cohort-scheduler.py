@@ -630,9 +630,39 @@ with tab3:
         
         # Display detailed results
         st.divider()
-        
+                    # Create CSV for spreadsheet download - Term-by-Term
+        def generate_term_csv_spreadsheet():
+                import csv
+                import io
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                
+                # Write header row
+                writer.writerow(['Term', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
+                
+                # Write data rows
+                for term in range(1, max_term + 1):
+                    row = [f"T{term}"]
+                    if term in scheduler.schedule and scheduler.schedule[term]:
+                        # Sort modules by module code
+                        for module in sorted(scheduler.schedule[term].keys()):
+                            cohorts = sorted(scheduler.schedule[term][module])
+                            cohort_str = ', '.join(cohorts)
+                            row.append(f"{module_names[module]} ({cohort_str})")
+                    writer.writerow(row)
+                
+                return output.getvalue()
         # Term-by-term schedule - REVISED FORMAT
-        st.subheader("📅 Term-by-Term Schedule (Detailed View)")
+        st.subheader("📅 Term-by-Term Schedule (Detailed View)") 
+        # Add download button for spreadsheet format
+        st.download_button(
+                "📊 Download Term Schedule (CSV)",
+                generate_term_csv_spreadsheet(),
+                "term_schedule_spreadsheet.csv",
+                "text/csv",
+                help="Download in spreadsheet format with terms as rows and modules as columns"
+            )
         if not scheduler.schedule:
             st.info("No schedule generated. Check for errors in prerequisites or configuration.")
         else:
@@ -668,29 +698,7 @@ with tab3:
             schedule_text = "\n".join(schedule_lines)
             st.text(schedule_text)
             
-            # Create CSV for spreadsheet download - Term-by-Term
-            def generate_term_csv_spreadsheet():
-                import csv
-                import io
-                
-                output = io.StringIO()
-                writer = csv.writer(output)
-                
-                # Write header row
-                writer.writerow(['Term', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
-                
-                # Write data rows
-                for term in range(1, max_term + 1):
-                    row = [f"T{term}"]
-                    if term in scheduler.schedule and scheduler.schedule[term]:
-                        # Sort modules by module code
-                        for module in sorted(scheduler.schedule[term].keys()):
-                            cohorts = sorted(scheduler.schedule[term][module])
-                            cohort_str = ', '.join(cohorts)
-                            row.append(f"{module_names[module]} ({cohort_str})")
-                    writer.writerow(row)
-                
-                return output.getvalue()
+
             
             # Add download button for spreadsheet format
             st.download_button(
