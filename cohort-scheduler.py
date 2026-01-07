@@ -773,7 +773,100 @@ with tab3:
                 "cohort_progression_spreadsheet.csv",
                 "text/csv",
                 help="Download in spreadsheet format with cohorts as rows and modules as columns"
-            )        
+            )  
+            
+                # Term-by-Cohort Matrix View
+        st.subheader("📊 Term × Cohort Matrix View")
+        if not scheduler.schedule:
+            st.info("No schedule generated. Check for errors in prerequisites or configuration.")
+        else:
+            max_term = summary['max_term']
+            
+            # Create data structure for the matrix
+            matrix_data = []
+            
+            # Header row
+            header_row = ["Term"]
+            for cohort in sorted(scheduler.cohorts):
+                header_row.append(f"Cohort {cohort}")
+            matrix_data.append(header_row)
+            
+            # Data rows for each term
+            for term in range(1, max_term + 1):
+                row = [f"T{term}"]
+                # For each cohort, find modules scheduled in this term
+                for cohort in sorted(scheduler.cohorts):
+                    modules_in_term = []
+                    # Check all modules scheduled in this term
+                    if term in scheduler.schedule:
+                        for module, cohorts in scheduler.schedule[term].items():
+                            if cohort in cohorts:
+                                modules_in_term.append(module_names[module])
+                    
+                    if modules_in_term:
+                        # Join multiple modules with line breaks for better readability in cells
+                        row.append("\n".join(modules_in_term))
+                    else:
+                        row.append("")
+                matrix_data.append(row)
+            
+            # Convert to pandas DataFrame for better display
+            import pandas as pd
+            df = pd.DataFrame(matrix_data[1:], columns=matrix_data[0])
+            
+            # Style the dataframe
+            styled_df = df.style.set_properties(**{
+                'text-align': 'left',
+                'white-space': 'pre-wrap',
+                'vertical-align': 'top'
+            }).set_table_styles([
+                {'selector': 'th', 'props': [('background-color', '#f0f2f6'), ('font-weight', 'bold')]},
+                {'selector': 'td', 'props': [('border', '1px solid #e0e0e0'), ('padding', '8px')]},
+                {'selector': 'tr:hover', 'props': [('background-color', '#f9f9f9')]}
+            ])
+            
+            # Display the styled dataframe
+            st.dataframe(styled_df, height=600, use_container_width=True)
+            
+            # Create CSV for spreadsheet download - Term × Cohort Matrix
+            def generate_matrix_csv():
+                import csv
+                import io
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                
+                # Write header row
+                writer.writerow(["Term"] + [f"Cohort {c}" for c in sorted(scheduler.cohorts)])
+                
+                # Write data rows
+                for term in range(1, max_term + 1):
+                    row = [f"T{term}"]
+                    for cohort in sorted(scheduler.cohorts):
+                        modules_in_term = []
+                        if term in scheduler.schedule:
+                            for module, cohorts in scheduler.schedule[term].items():
+                                if cohort in cohorts:
+                                    modules_in_term.append(module_names[module])
+                        
+                        if modules_in_term:
+                            row.append("; ".join(modules_in_term))
+                        else:
+                            row.append("")
+                    writer.writerow(row)
+                
+                return output.getvalue()
+            
+            # Add download button for spreadsheet format
+            st.download_button(
+                "📥 Download Term×Cohort Matrix (CSV)",
+                generate_matrix_csv(),
+                "term_cohort_matrix.csv",
+                "text/csv",
+                help="Download in spreadsheet format with terms as rows and cohorts as columns"
+            )
+            
+            st.caption("💡 Tip: This view shows which modules each cohort takes in each term. Hover over cells to see full content, or download the CSV for complete details.")       
         # Module-term mapping - SHOW ALL MODULES BY DEFAULT
         st.subheader("🗺️ Module-Term Mapping for All Modules")
         
