@@ -496,7 +496,7 @@ with tab2:
                 f"Start term for {cohort}",
                 min_value=1,
                 max_value=50,
-                value=i*2 + 1, #
+                # value=i*2 + 1, #
                 value=default_starts[i],
                 key=f"cohort_{cohort}"
             )
