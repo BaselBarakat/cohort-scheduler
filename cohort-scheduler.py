@@ -731,15 +731,22 @@ with tab3:
                     writer.writerow(row)
                 
                 return output.getvalue()
-            
-            # Add download button for spreadsheet format
-            st.download_button(
-                "📥 Download Term×Cohort Matrix (CSV)",
-                generate_matrix_csv(),
-                "term_cohort_matrix.csv",
-                "text/csv",
-                help="Download in spreadsheet format with terms as rows and cohorts as columns"
-            )
+                    # Download button for term dates
+        def generate_term_dates_csv():
+                output = io.StringIO()
+                writer = csv.writer(output)
+                writer.writerow(['Term', 'Date'])
+                for term in range(1, 27):
+                    writer.writerow([f"Term {term}", get_term_date(term)])
+                return output.getvalue()
+                # Add download button for spreadsheet format
+        st.download_button(
+                    "📥 Download Term×Cohort Matrix (CSV)",
+                    generate_matrix_csv(),
+                    "term_cohort_matrix.csv",
+                    "text/csv",
+                    help="Download in spreadsheet format with terms as rows and cohorts as columns"
+                    )
         # Module-term mapping - SHOW ALL MODULES BY DEFAULT
         st.subheader("🗺️ Module-Term Mapping for All Modules")
         
