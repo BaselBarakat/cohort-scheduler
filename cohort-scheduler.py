@@ -655,12 +655,37 @@ with tab3:
             schedule_text = "\n".join(schedule_lines)
             st.text(schedule_text)
             
-            # Add download button for this view
+            # Create CSV for spreadsheet download - Term-by-Term
+            def generate_term_csv_spreadsheet():
+                import csv
+                import io
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                
+                # Write header row
+                writer.writerow(['Term', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
+                
+                # Write data rows
+                for term in range(1, max_term + 1):
+                    row = [f"T{term}"]
+                    if term in scheduler.schedule and scheduler.schedule[term]:
+                        # Sort modules by module code
+                        for module in sorted(scheduler.schedule[term].keys()):
+                            cohorts = sorted(scheduler.schedule[term][module])
+                            cohort_str = ', '.join(cohorts)
+                            row.append(f"{module_names[module]} ({cohort_str})")
+                    writer.writerow(row)
+                
+                return output.getvalue()
+            
+            # Add download button for spreadsheet format
             st.download_button(
-                "📥 Download Detailed Schedule",
-                schedule_text,
-                "detailed_schedule.csv",
-                "text/plain"
+                "📊 Download Term Schedule (CSV)",
+                generate_term_csv_spreadsheet(),
+                "term_schedule_spreadsheet.csv",
+                "text/csv",
+                help="Download in spreadsheet format with terms as rows and modules as columns"
             )
         
         # Cohort progression - REVISED HORIZONTAL FORMAT
@@ -701,14 +726,40 @@ with tab3:
             cohort_text = "\n".join(cohort_lines)
             st.text(cohort_text)
             
-            # Add download button for this view
+            # Create CSV for spreadsheet download - Cohort Progression
+            def generate_cohort_csv_spreadsheet():
+                import csv
+                import io
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                
+                # Write header row
+                writer.writerow(['Cohort', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
+                
+                # Write data rows
+                for cohort in sorted(scheduler.cohort_progress.keys()):
+                    row = [cohort]
+                    if cohort in scheduler.cohort_progress:
+                        # Sort modules by term taken
+                        sorted_modules = sorted(
+                            scheduler.cohort_progress[cohort].items(),
+                            key=lambda x: x[1]
+                        )
+                        for module, term in sorted_modules:
+                            row.append(f"{module_names[module]}(T{term})")
+                    writer.writerow(row)
+                
+                return output.getvalue()
+            
+            # Add download button for spreadsheet format
             st.download_button(
-                "📥 Download Cohort Progression",
-                cohort_text,
-                "cohort_progression.csv",
-                "text/plain"
-            )
-        
+                "📊 Download Cohort Progression (CSV)",
+                generate_cohort_csv_spreadsheet(),
+                "cohort_progression_spreadsheet.csv",
+                "text/csv",
+                help="Download in spreadsheet format with cohorts as rows and modules as columns"
+            )        
         # Module-term mapping - SHOW ALL MODULES BY DEFAULT
         st.subheader("🗺️ Module-Term Mapping for All Modules")
         
