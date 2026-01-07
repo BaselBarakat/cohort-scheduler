@@ -1,3 +1,4 @@
+!pip install networkx
 """
 Streamlit Cohort Scheduler with Customizable Prerequisites
 Run with: streamlit run app.py
@@ -667,3 +668,4 @@ st.markdown("""
 """)
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
+
