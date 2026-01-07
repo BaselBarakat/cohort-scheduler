@@ -532,5 +532,3 @@ with tab3:
 # Footer
 st.divider()
 st.markdown("**💡 Tip:** Try different prerequisite configurations to see how they affect scheduling efficiency!")
-```
-
