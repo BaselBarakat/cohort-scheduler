@@ -630,7 +630,7 @@ with tab3:
         
         # Display detailed results
         st.divider()
-                # Term-by-Cohort Matrix View
+        # Term-by-Cohort Matrix View
         st.subheader("📊 Term × Cohort Matrix View")
         if not scheduler.schedule:
             st.info("No schedule generated. Check for errors in prerequisites or configuration.")
@@ -720,7 +720,30 @@ with tab3:
                 "text/csv",
                 help="Download in spreadsheet format with terms as rows and cohorts as columns"
             )
-            
+        # Module-term mapping - SHOW ALL MODULES BY DEFAULT
+        st.subheader("🗺️ Module-Term Mapping for All Modules")
+        
+        # Create expanders for each module
+        for module in sorted(module_names.keys()):
+            with st.expander(f"{module_names[module]} ({module})"):
+                if module in scheduler.module_runs:
+                    terms = sorted(scheduler.module_runs[module])
+                    if terms:
+                        st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
+                        st.markdown(f"**Total runs:** {len(terms)}")
+                        
+                        # Visual timeline
+                        max_term = max(terms + [1])
+                        timeline = ["▢"] * (max_term + 1)
+                        for t in terms:
+                            if t <= max_term:
+                                timeline[t] = "✅"
+                        timeline_str = "".join(timeline[1:])
+                        st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
+                    else:
+                        st.info(f"Module {module} is never scheduled")
+                else:
+                    st.warning(f"Module {module} not found in schedule")    
         # Term-by-term schedule - REVISED FORMAT
         st.subheader("📅 Term-by-Term Schedule (Detailed View)") 
         
@@ -867,30 +890,7 @@ with tab3:
             
 
             st.caption("💡 Tip: This view shows which modules each cohort takes in each term. Hover over cells to see full content, or download the CSV for complete details.")       
-        # Module-term mapping - SHOW ALL MODULES BY DEFAULT
-        st.subheader("🗺️ Module-Term Mapping for All Modules")
-        
-        # Create expanders for each module
-        for module in sorted(module_names.keys()):
-            with st.expander(f"{module_names[module]} ({module})"):
-                if module in scheduler.module_runs:
-                    terms = sorted(scheduler.module_runs[module])
-                    if terms:
-                        st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
-                        st.markdown(f"**Total runs:** {len(terms)}")
-                        
-                        # Visual timeline
-                        max_term = max(terms + [1])
-                        timeline = ["▢"] * (max_term + 1)
-                        for t in terms:
-                            if t <= max_term:
-                                timeline[t] = "✅"
-                        timeline_str = "".join(timeline[1:])
-                        st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
-                    else:
-                        st.info(f"Module {module} is never scheduled")
-                else:
-                    st.warning(f"Module {module} not found in schedule")
+
 
 # Footer
 st.divider()
