@@ -275,7 +275,7 @@ st.sidebar.header("⚙️ Configuration Presets")
 
 preset = st.sidebar.selectbox(
     "Load Preset:",
-    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequential","Logical"],
+    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequental","Logical"],
     key="preset_selector"
 )
 
@@ -691,6 +691,7 @@ st.markdown("""
 """)
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
+
 
 
 
