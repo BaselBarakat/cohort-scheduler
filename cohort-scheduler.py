@@ -264,7 +264,7 @@ modules = [f'M{i}' for i in range(1, 13)]
 
 # Initialize session state with proper defaults
 if 'prereqs' not in st.session_state:
-    st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
+    st.session_state.prereqs = PRESETS["No Prerequisites (just project)"].copy()
     # Ensure all modules exist in prerequisites
     for module in modules:
         if module not in st.session_state.prereqs:
@@ -275,7 +275,7 @@ st.sidebar.header("⚙️ Configuration Presets")
 
 preset = st.sidebar.selectbox(
     "Load Preset:",
-    ["Custom", "No Prerequisites", "Phase-Based", "Sequential (Original)"],
+    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequential","Logical"],
     key="preset_selector"
 )
 
@@ -435,7 +435,7 @@ with tab1:
             prereq_names = [f"{p} ({module_names[p]})" for p in prereq_list if p in module_names]
             config_display.append(f"**{module} ({module_names[module]}):** {', '.join(prereq_names)}")
         else:
-            config_display.append(f"**{module} ({module_names[module]}):** No prerequisites")
+            config_display.append(f"**{module} ({module_names[module]}):** No Prerequisites (just project)")
     
     st.markdown("\n\n".join(config_display))
 
@@ -691,5 +691,6 @@ st.markdown("""
 """)
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
+
 
 
