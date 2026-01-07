@@ -11,6 +11,27 @@ import csv
 import io
 import sys
 import networkx as nx  # Added for dependency cycle detection
+import pandas as pd
+
+# ========== TERM DATES DEFINITION ==========
+# Actual term dates starting from June 2026
+TERM_DATES = [
+    "08-Jun-26", "31-Aug-26", "26-Oct-26",
+    "04-Jan-27", "01-Mar-27", "03-May-27",
+    "08-Jun-27", "28-Jun-27", "30-Aug-27",
+    "31-Aug-27", "25-Oct-27", "26-Oct-27",
+    "03-Jan-28", "04-Jan-28", "28-Feb-28",
+    "01-Mar-28", "01-May-28", "03-May-28",
+    "26-Jun-28", "28-Jun-28", "28-Aug-28",
+    "30-Aug-28", "25-Oct-28", "03-Jan-29",
+    "28-Feb-29", "01-Mar-29"
+]
+
+# Helper function to get term date
+def get_term_date(term: int) -> str:
+    if 1 <= term <= len(TERM_DATES):
+        return TERM_DATES[term-1]
+    return f"T{term}"
 
 # ========== SCHEDULER CLASSES ==========
 
@@ -193,7 +214,7 @@ class CohortScheduler:
 # ========== PRESET DEFINITIONS ==========
 
 PRESETS = {
-    "No Prerequisites (just project)": {
+    "No Prerequisites": {
         'M1': [], 'M2': [], 'M3': [], 'M4': [], 'M5': [], 'M6': [],
         'M7': [], 'M8': [], 'M9': [],
         'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'],
@@ -201,17 +222,17 @@ PRESETS = {
         'M12': ['M11']
     },
     "Phase-Based": {
-        'M1': [], 'M2': [], 'M3': [], 'M4': [],#phase one
-        'M5': ['M1','M2', 'M3', 'M4'],
-        'M6': ['M1','M2', 'M3', 'M4'],
-        'M7': ['M1','M2', 'M3', 'M4'],
-        'M8': ['M1','M2', 'M3', 'M4'],
+        'M1': [], 'M2': [], 'M3': [], 'M4': [],
+        'M5': ['M2', 'M3', 'M4'],
+        'M6': ['M2', 'M3', 'M4'],
+        'M7': ['M2', 'M3', 'M4'],
+        'M8': ['M2', 'M3', 'M4'],
         'M9': ['M5', 'M6', 'M7', 'M8'],
         'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'],
         'M11': ['M10'],
         'M12': ['M11']
     },
-    "Logical": {
+    "Sequential (Original)": {
         'M1': [], 'M2': [], 'M3': [],
         'M4': ['M2', 'M3'],
         'M5': ['M4'],
@@ -219,31 +240,6 @@ PRESETS = {
         'M7': ['M6'],
         'M8': ['M6'],
         'M9': ['M5'],
-        'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'],
-        'M11': ['M10'],
-        'M12': ['M11']
-    },
-    
-        "Logical (no project)": {
-        'M1': [], 'M2': [], 'M3': [],
-        'M4': ['M2', 'M3'],
-        'M5': ['M4'],
-        'M6': ['M5'],
-        'M7': ['M6'],
-        'M8': ['M6'],
-        'M9': ['M5'],
-        'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'],
-        'M11': ['M10'],
-        'M12': ['M11']
-    },
-    "Sequental": {
-        'M1': [], 'M2': ['M1'], 'M3': ['M2'],
-        'M4': ['M3'],
-        'M5': ['M4'],
-        'M6': ['M5'],
-        'M7': ['M6'],
-        'M8': ['M7'],
-        'M9': ['M8'],
         'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'],
         'M11': ['M10'],
         'M12': ['M11']
@@ -277,7 +273,7 @@ modules = [f'M{i}' for i in range(1, 13)]
 
 # Initialize session state with proper defaults
 if 'prereqs' not in st.session_state:
-    st.session_state.prereqs = PRESETS["No Prerequisites (just project)"].copy()
+    st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
     # Ensure all modules exist in prerequisites
     for module in modules:
         if module not in st.session_state.prereqs:
@@ -288,13 +284,13 @@ st.sidebar.header("⚙️ Configuration Presets")
 
 preset = st.sidebar.selectbox(
     "Load Preset:",
-    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequental","Logical","Logical (no project)"],
+    ["Custom", "No Prerequisites", "Phase-Based", "Sequential (Original)"],
     key="preset_selector"
 )
 
 # Reset to initial state button
 if st.sidebar.button("↩️ Reset to Initial"):
-    st.session_state.prereqs = PRESETS["No Prerequisites (just project)"].copy()
+    st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
     # Ensure all modules exist after reset
     for module in modules:
         if module not in st.session_state.prereqs:
@@ -448,7 +444,7 @@ with tab1:
             prereq_names = [f"{p} ({module_names[p]})" for p in prereq_list if p in module_names]
             config_display.append(f"**{module} ({module_names[module]}):** {', '.join(prereq_names)}")
         else:
-            config_display.append(f"**{module} ({module_names[module]}):** No Prerequisites")
+            config_display.append(f"**{module} ({module_names[module]}):** No prerequisites")
     
     st.markdown("\n\n".join(config_display))
 
@@ -546,217 +542,55 @@ with tab3:
         scheduler = st.session_state.scheduler
         summary = st.session_state.summary
         cohort_starts = st.session_state.cohort_starts
+        max_term = summary['max_term']
         
-        # Download buttons
-        st.subheader("📥 Download CSV Files")
+        # Term Dates Reference Section
+        st.subheader("📅 Term Dates Reference")
+        st.markdown("This schedule uses the following term dates:")
         
-        col1, col2, col3, col4 = st.columns(4)
+        # Create a table of term numbers and dates
+        term_date_data = []
+        for term in range(1, min(max_term, 26) + 1):
+            term_date_data.append([f"Term {term}", get_term_date(term)])
         
-        # Generate CSVs
-        def generate_term_csv():
+        # Add remaining terms if max_term > 26
+        if max_term > 26:
+            term_date_data.append([f"Term {max_term}", "TBD"])
+        
+        # Display as a dataframe
+        term_date_df = pd.DataFrame(term_date_data, columns=["Term", "Date"])
+        st.dataframe(term_date_df, use_container_width=True)
+        
+        # Download button for term dates
+        def generate_term_dates_csv():
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow(['Term', 'Module_Code', 'Module_Name', 'Cohorts'])
-            for term in sorted(scheduler.schedule.keys()):
-                for module, cohorts in scheduler.schedule[term].items():
-                    writer.writerow([term, module, module_names[module], ','.join(sorted(cohorts))])
+            writer.writerow(['Term', 'Date'])
+            for term in range(1, 27):
+                writer.writerow([f"Term {term}", get_term_date(term)])
             return output.getvalue()
         
-        def generate_cohort_csv():
-            output = io.StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['Cohort', 'Module_Code', 'Module_Name', 'Term_Taken', 'Start_Term'])
-            for cohort in sorted(scheduler.cohort_progress.keys()):
-                start_term = cohort_starts[cohort]
-                for module, term in sorted(scheduler.cohort_progress[cohort].items(), key=lambda x: x[1]):
-                    writer.writerow([cohort, module, module_names[module], term, start_term])
-            return output.getvalue()
+        st.download_button(
+            "📥 Download Term Dates (CSV)",
+            generate_term_dates_csv(),
+            "term_dates.csv",
+            "text/csv",
+            help="Download the complete list of term dates"
+        )
         
-        def generate_metrics_csv():
-            output = io.StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['Metric', 'Baseline', 'Optimized', 'Improvement_Percent'])
-            baseline_runs = 8 * 12  # 8 cohorts * 12 modules
-            opt_runs = summary['total_runs']
-            improvement = (baseline_runs - opt_runs) / baseline_runs * 100 if baseline_runs > 0 else 0
-            writer.writerow(['Total_Module_Runs', baseline_runs, opt_runs, f"{improvement:.2f}"])
-            writer.writerow(['Schedule_Length', 'N/A', summary['max_term'], 'N/A'])
-            return output.getvalue()
-        
-        def generate_mapping_csv():
-            output = io.StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['Module_Code', 'Module_Name', 'Terms_Offered', 'Run_Count'])
-            for module in sorted(module_names.keys()):
-                terms = sorted(scheduler.module_runs[module])
-                writer.writerow([module, module_names[module], ','.join(map(str, terms)), len(terms)])
-            return output.getvalue()
-        
-        with col1:
-            st.download_button(
-                "📄 Term Schedule",
-                generate_term_csv(),
-                "term_by_term_schedule.csv",
-                "text/csv",
-                help="Schedule showing which modules run each term and which cohorts attend"
-            )
-        
-        with col2:
-            st.download_button(
-                "📄 Cohort Progression",
-                generate_cohort_csv(),
-                "cohort_progression.csv",
-                "text/csv",
-                help="Complete progression of each cohort through all modules"
-            )
-        
-        with col3:
-            st.download_button(
-                "📊 Metrics",
-                generate_metrics_csv(),
-                "metrics_comparison.csv",
-                "text/csv",
-                help="Comparison of optimized schedule vs baseline (one module run per cohort)"
-            )
-        
-        with col4:
-            st.download_button(
-                "🔍 Module Mapping",
-                generate_mapping_csv(),
-                "module_term_mapping.csv",
-                "text/csv",
-                help="Mapping of which modules run in which terms"
-            )
-        
-        # Display detailed results
         st.divider()
-        # Term-by-Cohort Matrix View
-        st.subheader("📊 Term × Cohort Matrix View")
+        
+        # Term-by-term schedule with actual dates
+        st.subheader("📅 Term-by-Term Schedule (With Actual Dates)")
         if not scheduler.schedule:
             st.info("No schedule generated. Check for errors in prerequisites or configuration.")
         else:
-            max_term = summary['max_term']
-            
-            # Create data structure for the matrix
-            matrix_data = []
-            
-            # Header row
-            header_row = ["Term"]
-            for cohort in sorted(scheduler.cohorts):
-                header_row.append(f"Cohort {cohort}")
-            matrix_data.append(header_row)
-            
-            # Data rows for each term
-            for term in range(1, max_term + 1):
-                row = [f"T{term}"]
-                # For each cohort, find modules scheduled in this term
-                for cohort in sorted(scheduler.cohorts):
-                    modules_in_term = []
-                    # Check all modules scheduled in this term
-                    if term in scheduler.schedule:
-                        for module, cohorts in scheduler.schedule[term].items():
-                            if cohort in cohorts:
-                                modules_in_term.append(module_names[module])
-                    
-                    if modules_in_term:
-                        # Join multiple modules with line breaks for better readability in cells
-                        row.append("\n".join(modules_in_term))
-                    else:
-                        row.append("")
-                matrix_data.append(row)
-            
-            # Convert to pandas DataFrame for better display
-            import pandas as pd
-            df = pd.DataFrame(matrix_data[1:], columns=matrix_data[0])
-            
-            # Style the dataframe
-            styled_df = df.style.set_properties(**{
-                'text-align': 'left',
-                'white-space': 'pre-wrap',
-                'vertical-align': 'top'
-            }).set_table_styles([
-                {'selector': 'th', 'props': [('background-color', '#f0f2f6'), ('font-weight', 'bold')]},
-                {'selector': 'td', 'props': [('border', '1px solid #e0e0e0'), ('padding', '8px')]},
-                {'selector': 'tr:hover', 'props': [('background-color', '#f9f9f9')]}
-            ])
-            
-            # Display the styled dataframe
-            st.dataframe(styled_df, height=600, use_container_width=True)
-            
-            # Create CSV for spreadsheet download - Term × Cohort Matrix
-            def generate_matrix_csv():
-                import csv
-                import io
-                
-                output = io.StringIO()
-                writer = csv.writer(output)
-                
-                # Write header row
-                writer.writerow(["Term"] + [f"Cohort {c}" for c in sorted(scheduler.cohorts)])
-                
-                # Write data rows
-                for term in range(1, max_term + 1):
-                    row = [f"T{term}"]
-                    for cohort in sorted(scheduler.cohorts):
-                        modules_in_term = []
-                        if term in scheduler.schedule:
-                            for module, cohorts in scheduler.schedule[term].items():
-                                if cohort in cohorts:
-                                    modules_in_term.append(module_names[module])
-                        
-                        if modules_in_term:
-                            row.append("; ".join(modules_in_term))
-                        else:
-                            row.append("")
-                    writer.writerow(row)
-                
-                return output.getvalue()
-            
-            # Add download button for spreadsheet format
-            st.download_button(
-                "📥 Download Term×Cohort Matrix (CSV)",
-                generate_matrix_csv(),
-                "term_cohort_matrix.csv",
-                "text/csv",
-                help="Download in spreadsheet format with terms as rows and cohorts as columns"
-            )
-        # Module-term mapping - SHOW ALL MODULES BY DEFAULT
-        st.subheader("🗺️ Module-Term Mapping for All Modules")
-        
-        # Create expanders for each module
-        for module in sorted(module_names.keys()):
-            with st.expander(f"{module_names[module]} ({module})"):
-                if module in scheduler.module_runs:
-                    terms = sorted(scheduler.module_runs[module])
-                    if terms:
-                        st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
-                        st.markdown(f"**Total runs:** {len(terms)}")
-                        
-                        # Visual timeline
-                        max_term = max(terms + [1])
-                        timeline = ["▢"] * (max_term + 1)
-                        for t in terms:
-                            if t <= max_term:
-                                timeline[t] = "✅"
-                        timeline_str = "".join(timeline[1:])
-                        st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
-                    else:
-                        st.info(f"Module {module} is never scheduled")
-                else:
-                    st.warning(f"Module {module} not found in schedule")    
-        # Term-by-term schedule - REVISED FORMAT
-        st.subheader("📅 Term-by-Term Schedule (Detailed View)") 
-        
-        if not scheduler.schedule:
-            st.info("No schedule generated. Check for errors in prerequisites or configuration.")
-        else:
-            max_term = summary['max_term']
             schedule_lines = []
             
             # Header
-            schedule_lines.append("="*80)
+            schedule_lines.append("="*100)
             schedule_lines.append("DETAILED OPTIMIZED SCHEDULE (Term-by-Term)")
-            schedule_lines.append("="*80)
+            schedule_lines.append("="*100)
             
             # Generate schedule lines for all terms from 1 to max_term
             for term in range(1, max_term + 1):
@@ -769,14 +603,16 @@ with tab3:
                         modules_in_term.append(f"{module_names[module]} ({cohort_str})")
                     
                     # Join modules with tab separation
-                    term_line = f"T{term}: " + "\t".join(modules_in_term)
+                    term_date = get_term_date(term)
+                    term_line = f"{term_date}: " + "\t".join(modules_in_term)
                     schedule_lines.append(term_line)
                 else:
                     # For empty terms, show placeholder
-                    schedule_lines.append(f"T{term}: (no modules scheduled)")
+                    term_date = get_term_date(term)
+                    schedule_lines.append(f"{term_date}: (no modules scheduled)")
             
             # Footer
-            schedule_lines.append("="*80)
+            schedule_lines.append("="*100)
             
             # Display as monospace text
             schedule_text = "\n".join(schedule_lines)
@@ -791,11 +627,12 @@ with tab3:
                 writer = csv.writer(output)
                 
                 # Write header row
-                writer.writerow(['Term', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
+                writer.writerow(['Term', 'Date', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Module 5', 'Module 6', 'Module 7', 'Module 8', 'Module 9', 'Module 10', 'Module 11', 'Module 12'])
                 
                 # Write data rows
                 for term in range(1, max_term + 1):
-                    row = [f"T{term}"]
+                    term_date = get_term_date(term)
+                    row = [f"T{term}", term_date]
                     if term in scheduler.schedule and scheduler.schedule[term]:
                         # Sort modules by module code
                         for module in sorted(scheduler.schedule[term].keys()):
@@ -815,7 +652,7 @@ with tab3:
                 help="Download in spreadsheet format with terms as rows and modules as columns"
             )
         
-        # Cohort progression - REVISED HORIZONTAL FORMAT
+        # Cohort progression with actual dates
         st.subheader("👥 Cohort Progression (Horizontal View)")
         if not scheduler.cohort_progress:
             st.info("No cohort progression data available.")
@@ -823,9 +660,9 @@ with tab3:
             cohort_lines = []
             
             # Header
-            cohort_lines.append("="*80)
+            cohort_lines.append("="*100)
             cohort_lines.append("PER-COHORT MODULE PROGRESSION")
-            cohort_lines.append("="*80)
+            cohort_lines.append("="*100)
             
             # Generate progression lines for all cohorts
             for cohort in sorted(scheduler.cohort_progress.keys()):
@@ -838,7 +675,8 @@ with tab3:
                     )
                     
                     for module, term in sorted_modules:
-                        modules_in_cohort.append(f"{module_names[module]}(T{term})")
+                        term_date = get_term_date(term)
+                        modules_in_cohort.append(f"{module_names[module]}({term_date})")
                     
                     # Join modules with tab separation
                     cohort_line = f"{cohort}: " + "\t".join(modules_in_cohort)
@@ -847,7 +685,7 @@ with tab3:
                     cohort_lines.append(f"{cohort}: (no modules scheduled)")
             
             # Footer
-            cohort_lines.append("="*80)
+            cohort_lines.append("="*100)
             
             # Display as monospace text
             cohort_text = "\n".join(cohort_lines)
@@ -874,7 +712,8 @@ with tab3:
                             key=lambda x: x[1]
                         )
                         for module, term in sorted_modules:
-                            row.append(f"{module_names[module]}(T{term})")
+                            term_date = get_term_date(term)
+                            row.append(f"{module_names[module]}({term_date})")
                     writer.writerow(row)
                 
                 return output.getvalue()
@@ -886,11 +725,100 @@ with tab3:
                 "cohort_progression_spreadsheet.csv",
                 "text/csv",
                 help="Download in spreadsheet format with cohorts as rows and modules as columns"
-            )  
+            )
+        
+        # Term-by-Cohort Matrix View
+        st.subheader("📊 Term × Cohort Matrix View")
+        if not scheduler.schedule:
+            st.info("No schedule generated. Check for errors in prerequisites or configuration.")
+        else:
+            # Create data structure for the matrix
+            matrix_data = []
             
-
-            st.caption("💡 Tip: This view shows which modules each cohort takes in each term. Hover over cells to see full content, or download the CSV for complete details.")       
-
+            # Header row
+            header_row = ["Term", "Date"]
+            for cohort in sorted(scheduler.cohorts):
+                header_row.append(f"Cohort {cohort}")
+            matrix_data.append(header_row)
+            
+            # Data rows for each term
+            for term in range(1, max_term + 1):
+                term_date = get_term_date(term)
+                row = [f"T{term}", term_date]
+                # For each cohort, find modules scheduled in this term
+                for cohort in sorted(scheduler.cohorts):
+                    modules_in_term = []
+                    # Check all modules scheduled in this term
+                    if term in scheduler.schedule:
+                        for module, cohorts in scheduler.schedule[term].items():
+                            if cohort in cohorts:
+                                modules_in_term.append(module_names[module])
+                    
+                    if modules_in_term:
+                        # Join multiple modules with line breaks for better readability in cells
+                        row.append("\n".join(modules_in_term))
+                    else:
+                        row.append("")
+                matrix_data.append(row)
+            
+            # Convert to pandas DataFrame for better display
+            df = pd.DataFrame(matrix_data[1:], columns=matrix_data[0])
+            
+            # Style the dataframe
+            styled_df = df.style.set_properties(**{
+                'text-align': 'left',
+                'white-space': 'pre-wrap',
+                'vertical-align': 'top',
+                'font-family': 'monospace'
+            }).set_table_styles([
+                {'selector': 'th', 'props': [('background-color', '#f0f2f6'), ('font-weight', 'bold')]},
+                {'selector': 'td', 'props': [('border', '1px solid #e0e0e0'), ('padding', '8px')]},
+                {'selector': 'tr:hover', 'props': [('background-color', '#f9f9f9')]}
+            ])
+            
+            # Display the styled dataframe
+            st.dataframe(styled_df, height=600, use_container_width=True)
+            
+            # Create CSV for spreadsheet download - Term × Cohort Matrix
+            def generate_matrix_csv():
+                import csv
+                import io
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                
+                # Write header row
+                writer.writerow(["Term", "Date"] + [f"Cohort {c}" for c in sorted(scheduler.cohorts)])
+                
+                # Write data rows
+                for term in range(1, max_term + 1):
+                    term_date = get_term_date(term)
+                    row = [f"T{term}", term_date]
+                    for cohort in sorted(scheduler.cohorts):
+                        modules_in_term = []
+                        if term in scheduler.schedule:
+                            for module, cohorts in scheduler.schedule[term].items():
+                                if cohort in cohorts:
+                                    modules_in_term.append(module_names[module])
+                        
+                        if modules_in_term:
+                            row.append("; ".join(modules_in_term))
+                        else:
+                            row.append("")
+                    writer.writerow(row)
+                
+                return output.getvalue()
+            
+            # Add download button for spreadsheet format
+            st.download_button(
+                "📥 Download Term×Cohort Matrix (CSV)",
+                generate_matrix_csv(),
+                "term_cohort_matrix.csv",
+                "text/csv",
+                help="Download in spreadsheet format with terms as rows and cohorts as columns"
+            )
+            
+            st.caption("💡 Tip: This view shows which modules each cohort takes in each term. Hover over cells to see full content, or download the CSV for complete details.")
 
 # Footer
 st.divider()
@@ -903,8 +831,4 @@ st.markdown("""
 - Use presets as starting points for your configuration
 """)
 
-st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
-
-
-
-
+st.caption("Scheduler v2.2 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm • Term dates based on academic calendar starting June 2026")
