@@ -435,7 +435,7 @@ with tab1:
             prereq_names = [f"{p} ({module_names[p]})" for p in prereq_list if p in module_names]
             config_display.append(f"**{module} ({module_names[module]}):** {', '.join(prereq_names)}")
         else:
-            config_display.append(f"**{module} ({module_names[module]}):** No Prerequisites (just project)")
+            config_display.append(f"**{module} ({module_names[module]}):** No Prerequisites")
     
     st.markdown("\n\n".join(config_display))
 
