@@ -223,6 +223,19 @@ PRESETS = {
         'M11': ['M10'],
         'M12': ['M11']
     },
+    
+        "Logical (no project)": {
+        'M1': [], 'M2': [], 'M3': [],
+        'M4': ['M2', 'M3'],
+        'M5': ['M4'],
+        'M6': ['M5'],
+        'M7': ['M6'],
+        'M8': ['M6'],
+        'M9': ['M5'],
+        'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'],
+        'M11': ['M10'],
+        'M12': ['M11']
+    },
     "Sequental": {
         'M1': [], 'M2': ['M1'], 'M3': ['M2'],
         'M4': ['M3'],
@@ -275,7 +288,7 @@ st.sidebar.header("⚙️ Configuration Presets")
 
 preset = st.sidebar.selectbox(
     "Load Preset:",
-    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequental","Logical"],
+    ["Custom", "No Prerequisites (just project)", "Phase-Based", "Sequental","Logical","Logical (no project)"],
     key="preset_selector"
 )
 
