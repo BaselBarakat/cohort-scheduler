@@ -354,56 +354,55 @@ with tab2:
                 if has_cycle(st.session_state.prereqs, modules):
                     st.error("❌ Cycle detected in prerequisite graph! Please fix the circular dependencies.")
                     sys.stdout = old_stdout
-                    return
-                
-                # Set up cohort configuration
-                cohort_starts = {
-                    'C1': 1, 'C2': 2, 'C3': 4, 'C4': 6,
-                    'C5': 8, 'C6': 10, 'C7': 12, 'C8': 14
-                }
-                
-                # Run scheduler
-                config = SchedulerConfig(
-                    max_terms=max_terms,
-                    max_modules_per_cohort_per_term=modules_per_term,
-                    verbose=False
-                )
-                
-                optimized = CohortScheduler(
-                    modules=modules,
-                    prereqs=st.session_state.prereqs,
-                    cohort_starts=cohort_starts,
-                    config=config
-                )
-                
-                success = optimized.find_optimal_schedule()
-                summary = optimized.get_schedule_summary()
-                
-                # Store results in session state
-                st.session_state.scheduler = optimized
-                st.session_state.summary = summary
-                st.session_state.success = success
-                
-                output = sys.stdout.getvalue()
-                sys.stdout = old_stdout
-                
-                if success:
-                    st.success("✅ Scheduling completed successfully!")
                 else:
-                    st.warning("⚠️ Scheduling completed but some cohorts may not have finished all modules.")
-                
-                # Show summary metrics
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Total Module Runs", summary['total_runs'])
-                with col2:
-                    st.metric("Schedule Length", f"{summary['max_term']} terms")
-                with col3:
-                    baseline_runs = 8 * 12
-                    improvement = (baseline_runs - summary['total_runs']) / baseline_runs * 100
-                    st.metric("Improvement vs Baseline", f"{improvement:.1f}%")
-                
-                st.info("✨ Go to the 'Results' tab to view detailed schedule and download CSV files.")
+                    # Set up cohort configuration
+                    cohort_starts = {
+                        'C1': 1, 'C2': 2, 'C3': 4, 'C4': 6,
+                        'C5': 8, 'C6': 10, 'C7': 12, 'C8': 14
+                    }
+                    
+                    # Run scheduler
+                    config = SchedulerConfig(
+                        max_terms=max_terms,
+                        max_modules_per_cohort_per_term=modules_per_term,
+                        verbose=False
+                    )
+                    
+                    optimized = CohortScheduler(
+                        modules=modules,
+                        prereqs=st.session_state.prereqs,
+                        cohort_starts=cohort_starts,
+                        config=config
+                    )
+                    
+                    success = optimized.find_optimal_schedule()
+                    summary = optimized.get_schedule_summary()
+                    
+                    # Store results in session state
+                    st.session_state.scheduler = optimized
+                    st.session_state.summary = summary
+                    st.session_state.success = success
+                    
+                    output = sys.stdout.getvalue()
+                    sys.stdout = old_stdout
+                    
+                    if success:
+                        st.success("✅ Scheduling completed successfully!")
+                    else:
+                        st.warning("⚠️ Scheduling completed but some cohorts may not have finished all modules.")
+                    
+                    # Show summary metrics
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Total Module Runs", summary['total_runs'])
+                    with col2:
+                        st.metric("Schedule Length", f"{summary['max_term']} terms")
+                    with col3:
+                        baseline_runs = 8 * 12
+                        improvement = (baseline_runs - summary['total_runs']) / baseline_runs * 100
+                        st.metric("Improvement vs Baseline", f"{improvement:.1f}%")
+                    
+                    st.info("✨ Go to the 'Results' tab to view detailed schedule and download CSV files.")
                 
             except Exception as e:
                 sys.stdout = old_stdout
