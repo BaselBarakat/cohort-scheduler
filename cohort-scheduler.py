@@ -222,8 +222,7 @@ PRESETS = {
         'M10': ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'],
         'M11': ['M10'],
         'M12': ['M11']
-    }
-
+    },
     "Sequental": {
         'M1': [], 'M2': ['M1'], 'M3': ['M2'],
         'M4': ['M3'],
@@ -692,4 +691,5 @@ st.markdown("""
 """)
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
+
 
