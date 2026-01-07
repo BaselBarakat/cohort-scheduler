@@ -1,4 +1,4 @@
-```
+
 """
 Streamlit Cohort Scheduler with Customizable Prerequisites
 Run with: streamlit run app.py
@@ -533,3 +533,4 @@ with tab3:
 st.divider()
 st.markdown("**💡 Tip:** Try different prerequisite configurations to see how they affect scheduling efficiency!")
 ```
+
