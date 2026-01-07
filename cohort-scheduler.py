@@ -1,4 +1,3 @@
-
 """
 Streamlit Cohort Scheduler with Customizable Prerequisites
 Run with: streamlit run app.py
