@@ -253,37 +253,46 @@ modules = [f'M{i}' for i in range(1, 13)]
 # Initialize session state with proper defaults
 if 'prereqs' not in st.session_state:
     st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
-
-# Ensure all modules exist in prerequisites
-for module in modules:
-    if module not in st.session_state.prereqs:
-        st.session_state.prereqs[module] = []
+    # Ensure all modules exist in prerequisites
+    for module in modules:
+        if module not in st.session_state.prereqs:
+            st.session_state.prereqs[module] = []
 
 # Sidebar for preset configurations
 st.sidebar.header("⚙️ Configuration Presets")
 
 preset = st.sidebar.selectbox(
     "Load Preset:",
-    ["Custom", "No Prerequisites", "Phase-Based", "Sequential (Original)"]
+    ["Custom", "No Prerequisites", "Phase-Based", "Sequential (Original)"],
+    key="preset_selector"
 )
 
 # Reset to initial state button
 if st.sidebar.button("↩️ Reset to Initial"):
     st.session_state.prereqs = PRESETS["No Prerequisites"].copy()
+    # Ensure all modules exist after reset
+    for module in modules:
+        if module not in st.session_state.prereqs:
+            st.session_state.prereqs[module] = []
     st.success("✅ Reset to initial configuration!")
     st.rerun()
 
-# Load preset button
+# Load preset button - FIXED THE LOGIC HERE
 if st.sidebar.button("✅ Load Preset"):
-    if preset in PRESETS:
+    if preset != "Custom" and preset in PRESETS:
+        # Clear existing prerequisites first
+        st.session_state.prereqs = {}
+        # Load the selected preset
         st.session_state.prereqs = PRESETS[preset].copy()
         # Ensure all modules exist after loading preset
         for module in modules:
             if module not in st.session_state.prereqs:
                 st.session_state.prereqs[module] = []
         st.sidebar.success(f"✅ {preset} preset loaded!")
+        # Force a rerun to update the UI immediately
+        st.rerun()
     else:
-        st.sidebar.warning("Custom configuration preserved")
+        st.sidebar.info("Custom configuration preserved or preset not found")
 
 # Main content tabs
 tab1, tab2, tab3 = st.tabs(["📝 Edit Prerequisites", "▶️ Run Scheduler", "📊 Results"])
@@ -296,7 +305,8 @@ with tab1:
     edit_mode = st.radio(
         "Edit Mode:",
         ["Individual Module Editor (Recommended)", "Table View"],
-        horizontal=True
+        horizontal=True,
+        key="edit_mode"
     )
     
     if edit_mode == "Table View":
@@ -613,47 +623,49 @@ with tab3:
             else:
                 st.info(f"No modules scheduled for Term {selected_term}")
         
-        # Cohort progression
-        st.subheader("👥 Cohort Progression")
-        selected_cohort = st.selectbox("Select Cohort", options=sorted(scheduler.cohort_progress.keys()))
+        # Cohort progression - SHOW ALL COHORTS BY DEFAULT
+        st.subheader("👥 Cohort Progression for All Cohorts")
         
-        if selected_cohort in scheduler.cohort_progress:
-            cohort_modules = sorted(
-                scheduler.cohort_progress[selected_cohort].items(),
-                key=lambda x: x[1]
-            )
-            if cohort_modules:
-                st.markdown(f"### Progression for Cohort {selected_cohort} (Started Term {cohort_starts[selected_cohort]})")
-                for module, term in cohort_modules:
-                    st.markdown(f"**Term {term}:** {module_names[module]} ({module})")
-            else:
-                st.info(f"Cohort {selected_cohort} has no scheduled modules")
-        else:
-            st.warning(f"Cohort {selected_cohort} not found in schedule")
+        # Create expanders for each cohort
+        for cohort in sorted(scheduler.cohort_progress.keys()):
+            with st.expander(f"Cohort {cohort} (Started Term {cohort_starts[cohort]})"):
+                if cohort in scheduler.cohort_progress:
+                    cohort_modules = sorted(
+                        scheduler.cohort_progress[cohort].items(),
+                        key=lambda x: x[1]
+                    )
+                    if cohort_modules:
+                        for module, term in cohort_modules:
+                            st.markdown(f"**Term {term}:** {module_names[module]} ({module})")
+                    else:
+                        st.info(f"Cohort {cohort} has no scheduled modules")
+                else:
+                    st.warning(f"Cohort {cohort} not found in schedule")
         
-        # Module-term mapping
-        st.subheader("🗺️ Module-Term Mapping")
-        selected_module = st.selectbox("Select Module", options=sorted(module_names.keys()))
+        # Module-term mapping - SHOW ALL MODULES BY DEFAULT
+        st.subheader("🗺️ Module-Term Mapping for All Modules")
         
-        if selected_module in scheduler.module_runs:
-            terms = sorted(scheduler.module_runs[selected_module])
-            if terms:
-                st.markdown(f"### {module_names[selected_module]} ({selected_module})")
-                st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
-                st.markdown(f"**Total runs:** {len(terms)}")
-                
-                # Visual timeline
-                max_term = max(terms + [1])
-                timeline = ["▢"] * (max_term + 1)
-                for t in terms:
-                    if t <= max_term:
-                        timeline[t] = "✅"
-                timeline_str = "".join(timeline[1:])
-                st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
-            else:
-                st.info(f"Module {selected_module} is never scheduled")
-        else:
-            st.warning(f"Module {selected_module} not found in schedule")
+        # Create expanders for each module
+        for module in sorted(module_names.keys()):
+            with st.expander(f"{module_names[module]} ({module})"):
+                if module in scheduler.module_runs:
+                    terms = sorted(scheduler.module_runs[module])
+                    if terms:
+                        st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
+                        st.markdown(f"**Total runs:** {len(terms)}")
+                        
+                        # Visual timeline
+                        max_term = max(terms + [1])
+                        timeline = ["▢"] * (max_term + 1)
+                        for t in terms:
+                            if t <= max_term:
+                                timeline[t] = "✅"
+                        timeline_str = "".join(timeline[1:])
+                        st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
+                    else:
+                        st.info(f"Module {module} is never scheduled")
+                else:
+                    st.warning(f"Module {module} not found in schedule")
 
 # Footer
 st.divider()
@@ -667,7 +679,3 @@ st.markdown("""
 """)
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
-
-
-
-
