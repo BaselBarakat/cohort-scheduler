@@ -716,7 +716,7 @@ with tab3:
                 
                 # Write data rows
                 for term in range(1, max_term + 1):
-                    term_date = get_term_date(term)
+                    term_date = TERM_DATES[term]
                     row = [f"T{term}", term_date]
                     for cohort in sorted(scheduler.cohorts):
                         modules_in_term = []
