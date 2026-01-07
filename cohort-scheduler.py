@@ -618,77 +618,50 @@ with tab3:
         # Display detailed results
         st.divider()
         
-        # Term-by-term schedule
-        st.subheader("📅 Term-by-Term Schedule")
+        # Term-by-term schedule - REVISED FORMAT
+        st.subheader("📅 Term-by-Term Schedule (Detailed View)")
         if not scheduler.schedule:
             st.info("No schedule generated. Check for errors in prerequisites or configuration.")
         else:
-            terms = sorted(scheduler.schedule.keys())
-            selected_term = st.select_slider("Select Term to View", options=terms, value=terms[0])
+            max_term = summary['max_term']
+            schedule_lines = []
             
-            if selected_term in scheduler.schedule and scheduler.schedule[selected_term]:
-                st.markdown(f"### Term {selected_term}")
-                for module, cohorts in sorted(scheduler.schedule[selected_term].items()):
-                    st.markdown(f"**{module_names[module]}** ({module})")
-                    st.markdown(f"Cohorts: {', '.join(sorted(cohorts))}")
-                    st.markdown("---")
-            else:
-                st.info(f"No modules scheduled for Term {selected_term}")
-        
-        # Cohort progression - SHOW ALL COHORTS BY DEFAULT
-        st.subheader("👥 Cohort Progression for All Cohorts")
-        
-        # Create expanders for each cohort
-        for cohort in sorted(scheduler.cohort_progress.keys()):
-            with st.expander(f"Cohort {cohort} (Started Term {cohort_starts[cohort]})"):
-                if cohort in scheduler.cohort_progress:
-                    cohort_modules = sorted(
-                        scheduler.cohort_progress[cohort].items(),
-                        key=lambda x: x[1]
-                    )
-                    if cohort_modules:
-                        for module, term in cohort_modules:
-                            st.markdown(f"**Term {term}:** {module_names[module]} ({module})")
-                    else:
-                        st.info(f"Cohort {cohort} has no scheduled modules")
+            # Header
+            schedule_lines.append("="*80)
+            schedule_lines.append("DETAILED OPTIMIZED SCHEDULE (Term-by-Term)")
+            schedule_lines.append("="*80)
+            
+            # Generate schedule lines for all terms from 1 to max_term
+            for term in range(1, max_term + 1):
+                if term in scheduler.schedule and scheduler.schedule[term]:
+                    modules_in_term = []
+                    # Sort modules by module code for consistent ordering
+                    for module in sorted(scheduler.schedule[term].keys()):
+                        cohorts = sorted(scheduler.schedule[term][module])
+                        cohort_str = ', '.join(cohorts)
+                        modules_in_term.append(f"{module_names[module]} ({cohort_str})")
+                    
+                    # Join modules with tab separation
+                    term_line = f"T{term}: " + "\t".join(modules_in_term)
+                    schedule_lines.append(term_line)
                 else:
-                    st.warning(f"Cohort {cohort} not found in schedule")
-        
-        # Module-term mapping - SHOW ALL MODULES BY DEFAULT
-        st.subheader("🗺️ Module-Term Mapping for All Modules")
-        
-        # Create expanders for each module
-        for module in sorted(module_names.keys()):
-            with st.expander(f"{module_names[module]} ({module})"):
-                if module in scheduler.module_runs:
-                    terms = sorted(scheduler.module_runs[module])
-                    if terms:
-                        st.markdown(f"**Offered in terms:** {', '.join(map(str, terms))}")
-                        st.markdown(f"**Total runs:** {len(terms)}")
-                        
-                        # Visual timeline
-                        max_term = max(terms + [1])
-                        timeline = ["▢"] * (max_term + 1)
-                        for t in terms:
-                            if t <= max_term:
-                                timeline[t] = "✅"
-                        timeline_str = "".join(timeline[1:])
-                        st.markdown(f"**Term timeline:** `1`{''.join(timeline[1:])}`{max_term}`")
-                    else:
-                        st.info(f"Module {module} is never scheduled")
-                else:
-                    st.warning(f"Module {module} not found in schedule")
-
-# Footer
-st.divider()
-st.markdown("""
-**💡 Tips for Better Schedules:**
-- Start with foundational modules having no prerequisites
-- Avoid circular dependencies (A requires B, B requires A)
-- Increase 'Max Modules per Cohort per Term' for faster completion
-- Adjust cohort start terms to balance resource usage
-- Use presets as starting points for your configuration
-""")
+                    # For empty terms, show placeholder
+                    schedule_lines.append(f"T{term}: (no modules scheduled)")
+            
+            # Footer
+            schedule_lines.append("="*80)
+            
+            # Display as monospace text
+            schedule_text = "\n".join(schedule_lines)
+            st.text(schedule_text)
+            
+            # Add download button for this view
+            st.download_button(
+                "📥 Download Detailed Schedule",
+                schedule_text,
+                "detailed_schedule.txt",
+                "text/plain"
+            )
 
 st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
 
