@@ -663,24 +663,51 @@ with tab3:
                 "text/plain"
             )
         
-        # Cohort progression - SHOW ALL COHORTS BY DEFAULT
-        st.subheader("👥 Cohort Progression for All Cohorts")
-        
-        # Create expanders for each cohort
-        for cohort in sorted(scheduler.cohort_progress.keys()):
-            with st.expander(f"Cohort {cohort} (Started Term {cohort_starts[cohort]})"):
+        # Cohort progression - REVISED HORIZONTAL FORMAT
+        st.subheader("👥 Cohort Progression (Horizontal View)")
+        if not scheduler.cohort_progress:
+            st.info("No cohort progression data available.")
+        else:
+            cohort_lines = []
+            
+            # Header
+            cohort_lines.append("="*80)
+            cohort_lines.append("PER-COHORT MODULE PROGRESSION")
+            cohort_lines.append("="*80)
+            
+            # Generate progression lines for all cohorts
+            for cohort in sorted(scheduler.cohort_progress.keys()):
                 if cohort in scheduler.cohort_progress:
-                    cohort_modules = sorted(
+                    modules_in_cohort = []
+                    # Sort modules by term taken
+                    sorted_modules = sorted(
                         scheduler.cohort_progress[cohort].items(),
                         key=lambda x: x[1]
                     )
-                    if cohort_modules:
-                        for module, term in cohort_modules:
-                            st.markdown(f"**Term {term}:** {module_names[module]} ({module})")
-                    else:
-                        st.info(f"Cohort {cohort} has no scheduled modules")
+                    
+                    for module, term in sorted_modules:
+                        modules_in_cohort.append(f"{module_names[module]}(T{term})")
+                    
+                    # Join modules with tab separation
+                    cohort_line = f"{cohort}: " + "\t".join(modules_in_cohort)
+                    cohort_lines.append(cohort_line)
                 else:
-                    st.warning(f"Cohort {cohort} not found in schedule")
+                    cohort_lines.append(f"{cohort}: (no modules scheduled)")
+            
+            # Footer
+            cohort_lines.append("="*80)
+            
+            # Display as monospace text
+            cohort_text = "\n".join(cohort_lines)
+            st.text(cohort_text)
+            
+            # Add download button for this view
+            st.download_button(
+                "📥 Download Cohort Progression",
+                cohort_text,
+                "cohort_progression.txt",
+                "text/plain"
+            )
         
         # Module-term mapping - SHOW ALL MODULES BY DEFAULT
         st.subheader("🗺️ Module-Term Mapping for All Modules")
