@@ -1,6 +1,6 @@
 """
-Streamlit Cohort Scheduler with Customizable Prerequisites
-Run with: streamlit run app.py
+Streamlit Cohort Scheduler with Customisable Prerequisites
+Basel Barakat
 """
 
 import streamlit as st
@@ -274,7 +274,7 @@ PRESETS = {
 st.set_page_config(page_title="Cohort Scheduler", page_icon="📚", layout="wide")
 
 st.title("📚 Cohort Scheduler with Custom Prerequisites")
-st.markdown("Configure module prerequisites and run the scheduling optimization.")
+st.markdown("Configure module prerequisites and run the scheduling optimisation.")
 
 # Module names mapping
 module_names = {
@@ -294,7 +294,7 @@ module_names = {
 
 modules = [f'M{i}' for i in range(1, 13)]
 
-# Initialize session state with proper defaults
+# Initialise session state with proper defaults
 if 'prereqs' not in st.session_state:
     st.session_state.prereqs = PRESETS["No Prerequisites (just project)"].copy()
     # Ensure all modules exist in prerequisites
@@ -502,7 +502,7 @@ with tab2:
             )
     
     if st.button("🚀 Run Scheduler", type="primary", use_container_width=True):
-        with st.spinner("Running optimization..."):
+        with st.spinner("Running optimisation..."):
             # Capture output
             old_stdout = sys.stdout
             sys.stdout = io.StringIO()
@@ -637,7 +637,7 @@ with tab3:
                 generate_metrics_csv(),
                 "metrics_comparison.csv",
                 "text/csv",
-                help="Comparison of optimized schedule vs baseline (one module run per cohort)"
+                help="Comparison of optimised schedule vs baseline (one module run per cohort)"
             )
         
         with col4:
@@ -785,7 +785,7 @@ with tab3:
             
             # Header
             schedule_lines.append("="*80)
-            schedule_lines.append("DETAILED OPTIMIZED SCHEDULE (Term-by-Term)")
+            schedule_lines.append("DETAILED OPTIMISED SCHEDULE (Term-by-Term)")
             schedule_lines.append("="*80)
             
             # Generate schedule lines for all terms from 1 to max_term
@@ -933,7 +933,8 @@ st.markdown("""
 - Use presets as starting points for your configuration
 """)
 
-st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimization algorithm")
+st.caption("Scheduler v2.1 • Handles 12 modules and 8 cohorts • Uses greedy optimisation algorithm")
+
 
 
 
