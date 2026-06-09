@@ -266,27 +266,46 @@ class CohortScheduler:
 # ========== DEFAULT DATA ==========
 
 DEFAULT_MODULE_NAMES = {
+    # Shared / AI core
     'M1': 'Research Methods',
     'M2': 'Programming & Algorithms',
     'M3': 'Data Programming',
     'M4': 'Artificial Intelligence',
     'M5': 'Machine Learning',
     'M6': 'Deep Learning',
-    'M7': 'NLP',
+    'M7': 'Natural Language Processing',
     'M8': 'Computer Vision',
     'M9': 'MLOps',
     'M10': 'Final Project 1',
     'M11': 'Final Project 2',
     'M12': 'Final Project 3',
-    # New modules for additional programmes
-    'M13': 'Data Mining',
+    # Data Analytics
+    'M13': 'Statistical Inference',
     'M14': 'Data Visualisation',
     'M15': 'Big Data',
+    'M16': 'Data Mining',
+    # Computational Linguistics
+    'M17': 'Core Issues in Language and Linguistics',
+    'M18': 'Corpus Linguistics',
+    'M19': 'Interaction Science',
+    'M20': 'Large Language Models',
+    'M21': 'Final Project in Computational Linguistics 1',
+    'M22': 'Final Project in Computational Linguistics 2',
+    'M23': 'Final Project in Computational Linguistics 3',
+    'M24': 'Final Project in Computational Linguistics 4',
 }
 
 # Global prerequisites (same everywhere). Capstones list every taught module;
 # each programme only enforces the ones it teaches.
-ALL_TAUGHT = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M13', 'M14', 'M15']
+# Every taught (non-final-project) module. A capstone can list all of these as
+# prerequisites; each programme only enforces the ones it actually teaches.
+ALL_TAUGHT = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+              'M13', 'M14', 'M15', 'M16', 'M17', 'M18', 'M19', 'M20']
+
+# Modules taught on the Computational Linguistics programme (used for its
+# final-project chain). Only enforced for cohorts that take them.
+CL_TAUGHT = ['M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20']
+
 DEFAULT_PREREQS = {
     'M1': [], 'M2': [], 'M3': [], 'M4': [],
     'M5': ['M2', 'M3'],
@@ -294,27 +313,57 @@ DEFAULT_PREREQS = {
     'M7': ['M5'],
     'M8': ['M5'],
     'M9': ['M5'],
+    # Data Analytics modules
     'M13': [],
     'M14': ['M3'],
     'M15': ['M2'],
-    'M10': list(ALL_TAUGHT),       # Final Project 1 after everything taught
+    'M16': ['M3'],
+    # Computational Linguistics modules
+    'M17': [],
+    'M18': ['M17'],
+    'M19': [],
+    'M20': ['M5', 'M7'],
+    # Generic final-project chain (shared by AI & Data Analytics)
+    'M10': list(ALL_TAUGHT),
     'M11': ['M10'],
     'M12': ['M11'],
+    # Computational Linguistics final-project chain
+    'M21': list(CL_TAUGHT),
+    'M22': ['M21'],
+    'M23': ['M22'],
+    'M24': ['M23'],
 }
 
 DEFAULT_PROGRAMMES = {
-    "MSc AI and ML": ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-                                    'M7', 'M8', 'M9', 'M10', 'M11', 'M12'],
-    "MSc AI and Data Analytics": ['M1', 'M2', 'M3', 'M5', 'M13', 'M14', 'M15',
-                         'M9', 'M10', 'M11', 'M12'],
+    # Original programme (unchanged)
+    "MSc Artificial Intelligence": [
+        'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+        'M10', 'M11', 'M12',
+    ],
+    # New: shared core (Research Methods, Programming, Data Programming, AI,
+    # ML, MLOps) + DA-specific (Data Mining, NLP, Big Data, Data Visualisation)
+    # + generic final projects. The DA-specific four are as you specified;
+    # the core and final-project choices are assumptions to confirm.
+    "MSc AI and Data Analytics": [
+        'M1', 'M2', 'M3', 'M4', 'M5', 'M9',          # shared core (assumed)
+        'M16', 'M7', 'M15', 'M14',                   # DA-specific (given)
+        'M10', 'M11', 'M12',                         # final projects (assumed)
+    ],
+    # New: exactly the 12 modules you listed
+    "MSc Computational Linguistics": [
+        'M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20',
+        'M21', 'M22', 'M23', 'M24',
+    ],
 }
 
 DEFAULT_COHORTS = [
-    {"Cohort": "ML-1", "Programme": "MSc AI and ML", "Start Term": 1},
-    {"Cohort": "ML-2", "Programme": "MSc AI and ML", "Start Term": 2},
-    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 4},
-    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 6},
+    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence", "Start Term": 1},
+    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 1},
+    {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 1},
+    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 4},
+    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 4},
 ]
+
 # Prerequisite presets (apply to whichever of these codes exist in the pool)
 PRESETS = {
     "No Prerequisites (just project)": {
@@ -828,7 +877,6 @@ st.markdown("""
 - Stagger cohort start terms to encourage cross-programme sharing of foundational modules.
 """)
 st.caption("Scheduler v3.0 • Multiple programmes • Shared modules • Greedy optimisation")
-
 # """
 # Streamlit Cohort Scheduler with Customisable Prerequisites
 # Basel Barakat
