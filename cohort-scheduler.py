@@ -279,9 +279,9 @@ DEFAULT_MODULE_NAMES = {
     'M11': 'Final Project 2',
     'M12': 'Final Project 3',
     # New modules for additional programmes
-    'M13': 'Statistical Inference',
+    'M13': 'Data Mining',
     'M14': 'Data Visualisation',
-    'M15': 'Big Data Systems',
+    'M15': 'Big Data',
 }
 
 # Global prerequisites (same everywhere). Capstones list every taught module;
@@ -303,19 +303,18 @@ DEFAULT_PREREQS = {
 }
 
 DEFAULT_PROGRAMMES = {
-    "MSc Artificial Intelligence": ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
+    "MSc AI and ML": ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
                                     'M7', 'M8', 'M9', 'M10', 'M11', 'M12'],
-    "MSc Data Science": ['M1', 'M2', 'M3', 'M5', 'M13', 'M14', 'M15',
+    "MSc AI and Data Analytics": ['M1', 'M2', 'M3', 'M5', 'M13', 'M14', 'M15',
                          'M9', 'M10', 'M11', 'M12'],
 }
 
 DEFAULT_COHORTS = [
-    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence", "Start Term": 1},
-    {"Cohort": "AI-2", "Programme": "MSc Artificial Intelligence", "Start Term": 4},
-    {"Cohort": "DS-1", "Programme": "MSc Data Science", "Start Term": 1},
-    {"Cohort": "DS-2", "Programme": "MSc Data Science", "Start Term": 6},
+    {"Cohort": "ML-1", "Programme": "MSc AI and ML", "Start Term": 1},
+    {"Cohort": "ML-2", "Programme": "MSc AI and ML", "Start Term": 2},
+    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 4},
+    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 6},
 ]
-
 # Prerequisite presets (apply to whichever of these codes exist in the pool)
 PRESETS = {
     "No Prerequisites (just project)": {
@@ -829,6 +828,7 @@ st.markdown("""
 - Stagger cohort start terms to encourage cross-programme sharing of foundational modules.
 """)
 st.caption("Scheduler v3.0 • Multiple programmes • Shared modules • Greedy optimisation")
+
 # """
 # Streamlit Cohort Scheduler with Customisable Prerequisites
 # Basel Barakat
