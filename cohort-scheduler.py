@@ -337,7 +337,8 @@ DEFAULT_PREREQS = {
 DEFAULT_PROGRAMMES = {
     # Original programme (unchanged)
     "MSc Artificial Intelligence & Machine Learning": [
-        'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+        'M1', 'M2', 'M3', 'M4', 'M5', 
+        'M6','M7', 'M8', 'M9',
         'M10', 'M11', 'M12',
     ],
     # New: shared core (Research Methods, Programming, Data Programming, AI,
@@ -345,7 +346,7 @@ DEFAULT_PROGRAMMES = {
     # + generic final projects. The DA-specific four are as you specified;
     # the core and final-project choices are assumptions to confirm.
     "MSc AI and Data Analytics": [
-        'M1', 'M2', 'M3', 'M4', 'M5', 'M9',          # shared core (assumed)
+        'M1', 'M2', 'M3', 'M4', 'M5',          # shared core (assumed)
         'M16', 'M7', 'M15', 'M14',                   # DA-specific (given)
         'M10', 'M11', 'M12',                         # final projects (assumed)
     ],
