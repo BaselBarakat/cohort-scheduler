@@ -336,7 +336,7 @@ DEFAULT_PREREQS = {
 
 DEFAULT_PROGRAMMES = {
     # Original programme (unchanged)
-    "MSc Artificial Intelligence": [
+    "MSc Artificial Intelligence & Machine Learning": [
         'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
         'M10', 'M11', 'M12',
     ],
@@ -357,7 +357,7 @@ DEFAULT_PROGRAMMES = {
 }
 
 DEFAULT_COHORTS = [
-    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence", "Start Term": 1},
+    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 1},
     {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 1},
     {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 1},
     {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
