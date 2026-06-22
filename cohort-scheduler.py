@@ -30,7 +30,7 @@ import sys
 import networkx as nx
 
 TERM_DATES = [
-    "08-Jun-26", "31-Aug-26", "26-Oct-26",
+    "31-Aug-26", "26-Oct-26",
     "04-Jan-27", "01-Mar-27", "03-May-27",
     "08-Jun-27", "28-Jun-27", "30-Aug-27",
     "31-Aug-27", "25-Oct-27", "26-Oct-27",
@@ -360,8 +360,8 @@ DEFAULT_COHORTS = [
     {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence", "Start Term": 1},
     {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 1},
     {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 1},
-    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 4},
-    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 4},
+    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
+    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 3},
 ]
 
 # Prerequisite presets (apply to whichever of these codes exist in the pool)
