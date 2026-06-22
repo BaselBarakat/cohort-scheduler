@@ -358,10 +358,11 @@ DEFAULT_PROGRAMMES = {
 
 DEFAULT_COHORTS = [
     {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 1},
-    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 1},
-    {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 1},
-    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
-    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 3},
+    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
+    {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 3},
+    {"Cohort": "AI-2", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 3},
+    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 5},
+    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 5},
 ]
 
 # Prerequisite presets (apply to whichever of these codes exist in the pool)
