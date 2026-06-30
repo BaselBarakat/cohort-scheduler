@@ -30,17 +30,149 @@ import sys
 import networkx as nx
 
 TERM_DATES = [
-    "31-Aug-26", "26-Oct-26",
-    "04-Jan-27", "01-Mar-27", "03-May-27",
-    "08-Jun-27", "28-Jun-27", "30-Aug-27",
-    "31-Aug-27", "25-Oct-27", "26-Oct-27",
-    "03-Jan-28", "04-Jan-28", "28-Feb-28",
-    "01-Mar-28", "01-May-28", "03-May-28",
-    "26-Jun-28", "28-Jun-28", "28-Aug-28",
-    "30-Aug-28", "25-Oct-28", "03-Jan-29",
-    "28-Feb-29", "01-Mar-29"
+    "31-Aug-26",    #T1 C1
+    "26-Oct-26",    #T2 C2
+    "04-Jan-27",    #T3
+    "01-Mar-27",    #T4 C3
+    "03-May-27",    #T5
+    "28-Jun-27",    #T6 C4
+    "30-Aug-27",    #T7 C5
+    "30-Aug-27",    #T8
+    "25-Oct-27",    #T9 C6
+    "03-Jan-28",    #T10
+    "28-Feb-28",    #T11 C7
+    "01-May-28",    #T12
+    "26-Jun-28",    #T13 C8
+    "28-Aug-28",    #T14
+    "23-Oct-28",    #T15 C9
+    "01-Jan-29",    #T16
+    "26-Feb-29"     #T17 C10
 ]
 
+DEFAULT_COHORTS = [
+    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 1},
+    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
+    {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 3},
+    {"Cohort": "AI-2", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 3},
+    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 6},
+    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 6},
+]
+# ========== DEFAULT DATA ==========
+
+DEFAULT_MODULE_NAMES = {
+    # Shared / AI core
+    'M1': 'Research Methods',
+    'M2': 'Programming & Algorithms',
+    'M3': 'Data Programming',
+    'M4': 'Artificial Intelligence',
+    'M5': 'Machine Learning',
+    'M6': 'Deep Learning',
+    'M7': 'Natural Language Processing',
+    'M8': 'Computer Vision',
+    'M9': 'MLOps',
+    'M10': 'Final Project 1',
+    'M11': 'Final Project 2',
+    'M12': 'Final Project 3',
+    # Data Analytics
+    'M13': 'Statistical Inference',
+    'M14': 'Data Visualisation',
+    'M15': 'Big Data',
+    'M16': 'Data Mining',
+    # Computational Linguistics
+    'M17': 'Core Issues in Language and Linguistics',
+    'M18': 'Corpus Linguistics',
+    'M19': 'Interaction Science',
+    'M20': 'Large Language Models',
+    'M21': 'Final Project in Computational Linguistics 1',
+    'M22': 'Final Project in Computational Linguistics 2',
+    'M23': 'Final Project in Computational Linguistics 3',
+    'M24': 'Final Project in Computational Linguistics 4',
+}
+
+# Global prerequisites (same everywhere). Capstones list every taught module;
+# each programme only enforces the ones it teaches.
+# Every taught (non-final-project) module. A capstone can list all of these as
+# prerequisites; each programme only enforces the ones it actually teaches.
+ALL_TAUGHT = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+              'M13', 'M14', 'M15', 'M16', 'M17', 'M18', 'M19', 'M20']
+
+# Modules taught on the Computational Linguistics programme (used for its
+# final-project chain). Only enforced for cohorts that take them.
+CL_TAUGHT = ['M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20']
+
+DEFAULT_PREREQS = {
+    'M1': [], 'M2': [], 'M3': [], 'M4': [],
+    'M5': ['M2', 'M3'],
+    'M6': ['M5'],
+    'M7': ['M5'],
+    'M8': ['M5'],
+    'M9': ['M5'],
+    # Data Analytics modules
+    'M13': [],
+    'M14': ['M3'],
+    'M15': ['M2'],
+    'M16': ['M3'],
+    # Computational Linguistics modules
+    'M17': [],
+    'M18': ['M17'],
+    'M19': [],
+    'M20': ['M5', 'M7'],
+    # Generic final-project chain (shared by AI & Data Analytics)
+    'M10': list(ALL_TAUGHT),
+    'M11': ['M10'],
+    'M12': ['M11'],
+    # Computational Linguistics final-project chain
+    'M21': list(CL_TAUGHT),
+    'M22': ['M21'],
+    'M23': ['M22'],
+    'M24': ['M23'],
+}
+
+DEFAULT_PROGRAMMES = {
+    # Original programme (unchanged)
+    "MSc Artificial Intelligence & Machine Learning": [
+        'M1', 'M2', 'M3', 'M4', 'M5', 
+        'M6','M7', 'M8', 'M9',
+        'M10', 'M11', 'M12',
+    ],
+    # New: shared core (Research Methods, Programming, Data Programming, AI,
+    # ML, MLOps) + DA-specific (Data Mining, NLP, Big Data, Data Visualisation)
+    # + generic final projects. The DA-specific four are as you specified;
+    # the core and final-project choices are assumptions to confirm.
+    "MSc AI and Data Analytics": [
+        'M1', 'M2', 'M3', 'M4', 'M5',          # shared core (assumed)
+        'M16', 'M7', 'M15', 'M14',                   # DA-specific (given)
+        'M10', 'M11', 'M12',                         # final projects (assumed)
+    ],
+    # New: exactly the 12 modules you listed
+    "MSc Computational Linguistics": [
+        'M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20',
+        'M21', 'M22', 'M23', 'M24',
+    ],
+}
+
+
+
+# Prerequisite presets (apply to whichever of these codes exist in the pool)
+PRESETS = {
+    "No Prerequisites (just project)": {
+        'M1': [], 'M2': [], 'M3': [], 'M4': [], 'M5': [], 'M6': [],
+        'M7': [], 'M8': [], 'M9': [], 'M13': [], 'M14': [], 'M15': [],
+        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
+    },
+    "Logical": {
+        'M1': [], 'M2': [], 'M3': [], 'M4': ['M2', 'M3'],
+        'M5': ['M4'], 'M6': ['M5'], 'M7': ['M6'], 'M8': ['M6'], 'M9': ['M5'],
+        'M13': [], 'M14': ['M3'], 'M15': ['M2'],
+        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
+    },
+    "Sequential (M1..M9)": {
+        'M1': [], 'M2': ['M1'], 'M3': ['M2'], 'M4': ['M3'], 'M5': ['M4'],
+        'M6': ['M5'], 'M7': ['M6'], 'M8': ['M7'], 'M9': ['M8'],
+        'M13': [], 'M14': ['M3'], 'M15': ['M2'],
+        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
+    },
+}
 
 def get_term_date(term: int) -> str:
     if 1 <= term <= len(TERM_DATES):
@@ -263,129 +395,6 @@ class CohortScheduler:
         }
 
 
-# ========== DEFAULT DATA ==========
-
-DEFAULT_MODULE_NAMES = {
-    # Shared / AI core
-    'M1': 'Research Methods',
-    'M2': 'Programming & Algorithms',
-    'M3': 'Data Programming',
-    'M4': 'Artificial Intelligence',
-    'M5': 'Machine Learning',
-    'M6': 'Deep Learning',
-    'M7': 'Natural Language Processing',
-    'M8': 'Computer Vision',
-    'M9': 'MLOps',
-    'M10': 'Final Project 1',
-    'M11': 'Final Project 2',
-    'M12': 'Final Project 3',
-    # Data Analytics
-    'M13': 'Statistical Inference',
-    'M14': 'Data Visualisation',
-    'M15': 'Big Data',
-    'M16': 'Data Mining',
-    # Computational Linguistics
-    'M17': 'Core Issues in Language and Linguistics',
-    'M18': 'Corpus Linguistics',
-    'M19': 'Interaction Science',
-    'M20': 'Large Language Models',
-    'M21': 'Final Project in Computational Linguistics 1',
-    'M22': 'Final Project in Computational Linguistics 2',
-    'M23': 'Final Project in Computational Linguistics 3',
-    'M24': 'Final Project in Computational Linguistics 4',
-}
-
-# Global prerequisites (same everywhere). Capstones list every taught module;
-# each programme only enforces the ones it teaches.
-# Every taught (non-final-project) module. A capstone can list all of these as
-# prerequisites; each programme only enforces the ones it actually teaches.
-ALL_TAUGHT = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
-              'M13', 'M14', 'M15', 'M16', 'M17', 'M18', 'M19', 'M20']
-
-# Modules taught on the Computational Linguistics programme (used for its
-# final-project chain). Only enforced for cohorts that take them.
-CL_TAUGHT = ['M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20']
-
-DEFAULT_PREREQS = {
-    'M1': [], 'M2': [], 'M3': [], 'M4': [],
-    'M5': ['M2', 'M3'],
-    'M6': ['M5'],
-    'M7': ['M5'],
-    'M8': ['M5'],
-    'M9': ['M5'],
-    # Data Analytics modules
-    'M13': [],
-    'M14': ['M3'],
-    'M15': ['M2'],
-    'M16': ['M3'],
-    # Computational Linguistics modules
-    'M17': [],
-    'M18': ['M17'],
-    'M19': [],
-    'M20': ['M5', 'M7'],
-    # Generic final-project chain (shared by AI & Data Analytics)
-    'M10': list(ALL_TAUGHT),
-    'M11': ['M10'],
-    'M12': ['M11'],
-    # Computational Linguistics final-project chain
-    'M21': list(CL_TAUGHT),
-    'M22': ['M21'],
-    'M23': ['M22'],
-    'M24': ['M23'],
-}
-
-DEFAULT_PROGRAMMES = {
-    # Original programme (unchanged)
-    "MSc Artificial Intelligence & Machine Learning": [
-        'M1', 'M2', 'M3', 'M4', 'M5', 
-        'M6','M7', 'M8', 'M9',
-        'M10', 'M11', 'M12',
-    ],
-    # New: shared core (Research Methods, Programming, Data Programming, AI,
-    # ML, MLOps) + DA-specific (Data Mining, NLP, Big Data, Data Visualisation)
-    # + generic final projects. The DA-specific four are as you specified;
-    # the core and final-project choices are assumptions to confirm.
-    "MSc AI and Data Analytics": [
-        'M1', 'M2', 'M3', 'M4', 'M5',          # shared core (assumed)
-        'M16', 'M7', 'M15', 'M14',                   # DA-specific (given)
-        'M10', 'M11', 'M12',                         # final projects (assumed)
-    ],
-    # New: exactly the 12 modules you listed
-    "MSc Computational Linguistics": [
-        'M17', 'M3', 'M18', 'M4', 'M5', 'M7', 'M19', 'M20',
-        'M21', 'M22', 'M23', 'M24',
-    ],
-}
-
-DEFAULT_COHORTS = [
-    {"Cohort": "AI-1", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 1},
-    {"Cohort": "DA-1", "Programme": "MSc AI and Data Analytics", "Start Term": 3},
-    {"Cohort": "CL-1", "Programme": "MSc Computational Linguistics", "Start Term": 3},
-    {"Cohort": "AI-2", "Programme": "MSc Artificial Intelligence & Machine Learning", "Start Term": 3},
-    {"Cohort": "DA-2", "Programme": "MSc AI and Data Analytics", "Start Term": 5},
-    {"Cohort": "CL-2", "Programme": "MSc Computational Linguistics", "Start Term": 5},
-]
-
-# Prerequisite presets (apply to whichever of these codes exist in the pool)
-PRESETS = {
-    "No Prerequisites (just project)": {
-        'M1': [], 'M2': [], 'M3': [], 'M4': [], 'M5': [], 'M6': [],
-        'M7': [], 'M8': [], 'M9': [], 'M13': [], 'M14': [], 'M15': [],
-        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
-    },
-    "Logical": {
-        'M1': [], 'M2': [], 'M3': [], 'M4': ['M2', 'M3'],
-        'M5': ['M4'], 'M6': ['M5'], 'M7': ['M6'], 'M8': ['M6'], 'M9': ['M5'],
-        'M13': [], 'M14': ['M3'], 'M15': ['M2'],
-        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
-    },
-    "Sequential (M1..M9)": {
-        'M1': [], 'M2': ['M1'], 'M3': ['M2'], 'M4': ['M3'], 'M5': ['M4'],
-        'M6': ['M5'], 'M7': ['M6'], 'M8': ['M7'], 'M9': ['M8'],
-        'M13': [], 'M14': ['M3'], 'M15': ['M2'],
-        'M10': list(ALL_TAUGHT), 'M11': ['M10'], 'M12': ['M11'],
-    },
-}
 
 
 # ========== SESSION STATE ==========
